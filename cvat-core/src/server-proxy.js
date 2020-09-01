@@ -7,6 +7,7 @@
     require:false
 */
 
+
 (() => {
     const FormData = require('form-data');
     const {
@@ -251,7 +252,7 @@
                     const data = JSON.stringify({
                         old_password: oldPassword,
                         new_password1: newPassword1,
-                        new_password2:newPassword2,
+                        new_password2: newPassword2,
                     });
                     await Axios.post(`${config.backendAPI}/auth/password/change`, data, {
                         proxy: config.proxy,
@@ -621,6 +622,7 @@
             // Session is 'task' or 'job'
             async function updateAnnotations(session, id, data, action) {
                 const { backendAPI } = config;
+                const { camelotPath } = config;
                 let requestFunc = null;
                 let url = null;
                 if (action.toUpperCase() === 'PUT') {
@@ -630,7 +632,68 @@
                     requestFunc = Axios.patch.bind(Axios);
                     url = `${backendAPI}/${session}s/${id}/annotations?action=${action}`;
                 }
-
+                if (data.shapes.length > 0) {
+                    console.log("DATA:", data.shapes)
+                    const axios = require('axios');
+                    let url = `${backendAPI}/${session}s/${id}`;
+                    const response = await Axios.get(url, {
+                         proxy: config.proxy,
+                     });
+                    console.log(response);
+                    if (Object.keys(response.data).length > 0) {
+                        let taskUrl = `${backendAPI}/tasks/${response.data.task_id}`;
+                        const meta = await getMeta(response.data.task_id);
+                        console.log("METADATA", meta);
+                        let frameData = meta.frames[0];
+                        let pdfName = frameData.name.split('000')[0] + '.pdf';
+                        const response2 = await Axios.get(taskUrl, {
+                          proxy: config.proxy,
+                      });
+                        console.log("TASK DATA", response2);
+                        let camelotData = { 
+                            pdfPath: `${camelotPath}/${pdfName}`,
+                            selections : []
+                        };
+                            
+                        for (var i=0; i < data.shapes.length ; i++) {
+                            const ann_data = data.shapes[i];
+                            console.log("ann_data", ann_data);
+                            let label_filtered = response2.data.labels.filter(label => label.id === ann_data.label_id);
+                            
+                            let labelName = label_filtered[0].name;
+                            let points = await reformatCoordinates(ann_data.points, frameData);
+                            let response3 = null;
+                            const pageNum = ann_data.frame;
+                            const selection = 
+                                        {
+                                        label: labelName,
+                                        pageNumber: pageNum + 1,
+                                        x0: points[0],
+                                        x1: points[2],
+                                        y0: points[1],
+                                        y1: points[3]
+                                        };
+                           camelotData.selections.push(selection);
+                                
+                        }
+                        console.log('CAMELOT DATA', camelotData);
+                        const { camelotAPI } = config;
+                        console.log('Camelot API: ', camelotAPI);
+                        try {
+                            response3 = await axios.post(camelotAPI, JSON.stringify(camelotData), {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        } catch (errorData) {
+                            throw generateError(errorData);
+                        }
+                        console.log(response3);
+                        console.log('TASK DATA', labelName, points);
+                    }
+                    // response = await callCamelotAPI(data);
+                    console.log('TESTING FOR ANNOTATIONS', data);
+                }
                 let response = null;
                 try {
                     response = await requestFunc(url, JSON.stringify(data), {
@@ -644,6 +707,22 @@
                 }
 
                 return response.data;
+            }
+            async function reformatCoordinates(points, frameData) {
+                if (points.length != 0) {
+                    return [
+                            points[0]/2.7,
+                            (points[1])/2.7,
+                            points[2]/2.7,
+                            (points[3])/2.7
+                            ];
+                } else {
+                return points;
+                }
+            }
+            async function callCamelotAPI(data) {
+                // const { camelotAPI } = config;
+                console.log('CAMELOT_API', file);
             }
 
             // Session is 'task' or 'job'

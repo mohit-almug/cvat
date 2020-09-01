@@ -19,6 +19,8 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from cvat.apps.engine.mime_types import mimetypes
+from .log import slogger
+import time
 
 def get_mime(name):
     for type_name, type_def in MEDIA_TYPES.items():
@@ -146,16 +148,22 @@ class PdfReader(DirectoryReader):
     def __init__(self, source_path, step=1, start=0, stop=None):
         if not source_path:
             raise Exception('No PDF found')
-
+        start_time= time.time()
         from pdf2image import convert_from_path
         self._pdf_source = source_path[0]
         self._tmp_dir = create_tmp_dir()
-        file_ = convert_from_path(self._pdf_source)
+        slogger.glob.info("for pdf {} got start {} and stop {}".format(self._pdf_source, start, stop)) 
+        file_ = convert_from_path(self._pdf_source, fmt='jpeg', output_folder=self._tmp_dir, thread_count=4, first_page=start, last_page=stop)
+        #slogger.glob.info("temp_dir_path: {}".format(file_))
         basename = os.path.splitext(os.path.basename(self._pdf_source))[0]
-        for page_num, page in enumerate(file_):
-            output = os.path.join(self._tmp_dir, '{}{:09d}.jpeg'.format(basename, page_num))
-            page.save(output, 'JPEG')
-
+        for file_name in os.listdir(self._tmp_dir):
+            old_output_path = os.path.join(self._tmp_dir,file_name)
+            page_num = int(file_name.split('.')[0].split('-')[-1])
+            new_output_path = os.path.join(self._tmp_dir, '{}{:09d}.jpeg'.format(basename, page_num))
+            os.rename(old_output_path, new_output_path)
+        end_time = time.time()
+        slogger.glob.info("Total time taken to process {} with {} pages is {} sec".format(source_path[0],len(file_), end_time-start_time))
+        slogger.glob.info("for temp path {} got start {} and stop {}".format(self._tmp_dir, start, stop)) 
         super().__init__(
             source_path=[self._tmp_dir],
             step=step,

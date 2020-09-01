@@ -171,6 +171,10 @@ export default (state = defaultState, action: AnyAction): AnnotationState => {
                 colors,
             };
         }
+        case AnnotationActionTypes.CALL_CAMELOT_API: {
+            console.log(state.annotations);
+            return state;
+        }
         case AnnotationActionTypes.GET_JOB_FAILED: {
             return {
                 ...state,

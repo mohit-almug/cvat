@@ -163,6 +163,19 @@ task_create_parser.add_argument(
             if data compression finished (necessary before uploading annotations)'''
 )
 
+task_create_parser.add_argument(
+        '--start_frame',
+        default=None,
+        type=int,
+        help='specifies start page number in a pdf or start frame in a video'
+)
+
+task_create_parser.add_argument(
+    '--stop_frame',
+    default=None,
+    type=int,
+    help='specifies stop page number in a pdf or end frame in a video'
+)
 #######################################################################
 # Delete
 #######################################################################

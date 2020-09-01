@@ -23,7 +23,7 @@ class CLI():
         self.session = session
         self.login(credentials)
 
-    def tasks_data(self, task_id, resource_type, resources):
+    def tasks_data(self, task_id, resource_type, resources, **kwargs):
         """ Add local, remote, or shared files to an existing task. """
         url = self.api.tasks_id_data(task_id)
         data = {}
@@ -35,6 +35,8 @@ class CLI():
         elif resource_type == ResourceType.SHARE:
             data = {'server_files[{}]'.format(i): f for i, f in enumerate(resources)}
         data['image_quality'] = 50
+        data['start_frame'] =  kwargs.get('start_frame', None)
+        data['stop_frame'] = kwargs.get('stop_frame', None)
         response = self.session.post(url, data=data, files=files)
         response.raise_for_status()
 
@@ -75,7 +77,7 @@ class CLI():
         response_json = response.json()
         log.info('Created task ID: {id} NAME: {name}'.format(**response_json))
         task_id = response_json['id']
-        self.tasks_data(task_id, resource_type, resources)
+        self.tasks_data(task_id, resource_type, resources, **kwargs)
 
         if annotation_path != '':
             url = self.api.tasks_id_status(task_id)

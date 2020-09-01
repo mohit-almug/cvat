@@ -75,7 +75,6 @@ RUN adduser --shell /bin/bash --disabled-password --gecos "" ${USER} && \
     fi
 
 COPY components /tmp/components
-
 # Install and initialize CVAT, copy all necessary files
 COPY cvat/requirements/ /tmp/requirements/
 COPY supervisord.conf mod_wsgi.conf wait-for-it.sh manage.py ${HOME}/

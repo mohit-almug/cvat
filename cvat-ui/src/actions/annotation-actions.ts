@@ -137,6 +137,7 @@ export enum AnnotationActionTypes {
     SHAPE_DRAWN = 'SHAPE_DRAWN',
     RESET_CANVAS = 'RESET_CANVAS',
     REMEMBER_CREATED_OBJECT = 'REMEMBER_CREATED_OBJECT',
+    CALL_CAMELOT_API = 'CALL_CAMELOT_API',
     UPDATE_ANNOTATIONS_SUCCESS = 'UPDATE_ANNOTATIONS_SUCCESS',
     UPDATE_ANNOTATIONS_FAILED = 'UPDATE_ANNOTATIONS_FAILED',
     CREATE_ANNOTATIONS_SUCCESS = 'CREATE_ANNOTATIONS_SUCCESS',
@@ -351,7 +352,14 @@ export function uploadJobAnnotationsAsync(job: any, loader: any, file: File): Th
                     loader,
                 },
             });
-
+            
+            dispatch({
+                type: AnnotationsParameters.CALL_CAMELOT_API,
+                payload: {
+                    job,
+                    loader,
+                },
+            });
             const frame = state.annotation.player.frame.number;
             await job.annotations.upload(file, loader);
 

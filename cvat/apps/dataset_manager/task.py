@@ -18,6 +18,7 @@ from .annotation import AnnotationIR, AnnotationManager
 from .bindings import TaskData
 from .formats.registry import make_exporter, make_importer
 
+import requests
 
 class dotdict(OrderedDict):
     """dot.notation access to dictionary attributes"""
