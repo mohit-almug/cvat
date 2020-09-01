@@ -712,9 +712,9 @@
                 if (points.length != 0) {
                     return [
                             points[0]/2.7,
-                            (points[1])/2.7,
+                            (points[1])/2.5,
                             points[2]/2.7,
-                            (points[3])/2.7
+                            (points[3])/2.5
                             ];
                 } else {
                 return points;
