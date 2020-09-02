@@ -50,6 +50,7 @@ router.register('jobs', views.JobViewSet)
 router.register('users', views.UserViewSet)
 router.register('server', views.ServerViewSet, basename='server')
 router.register('restrictions', RestrictionsViewSet, basename='restrictions')
+router.register('camelot', views.CamelotViewSet, basename='camelot')
 
 urlpatterns = [
     # Entry point for a client
@@ -66,5 +67,5 @@ urlpatterns = [
 
     # entry point for API
     path('api/v1/auth/', include('cvat.apps.authentication.urls')),
-    path('api/v1/', include((router.urls, 'cvat'), namespace='v1'))
+    path('api/v1/', include((router.urls, 'cvat'), namespace='v1')),
 ]

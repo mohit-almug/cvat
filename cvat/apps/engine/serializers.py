@@ -489,3 +489,6 @@ class LogEventSerializer(serializers.Serializer):
 
 class AnnotationFileSerializer(serializers.Serializer):
     annotation_file = serializers.FileField()
+
+class CamelotSerializer(serializers.Serializer):
+    payload = serializers.DictField(required=False)

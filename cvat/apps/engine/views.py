@@ -5,6 +5,7 @@
 import os
 import os.path as osp
 import shutil
+import json
 import traceback
 from datetime import datetime
 from tempfile import mkstemp
@@ -21,13 +22,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins, serializers, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from sendfile import sendfile
+
+import requests as req
 
 import cvat.apps.dataset_manager as dm
 import cvat.apps.dataset_manager.views # pylint: disable=unused-import
@@ -40,7 +43,7 @@ from cvat.apps.engine.serializers import (
     DataMetaSerializer, DataSerializer, ExceptionSerializer,
     FileInfoSerializer, JobSerializer, LabeledDataSerializer,
     LogEventSerializer, ProjectSerializer, RqStatusSerializer,
-    TaskSerializer, UserSerializer)
+    TaskSerializer, UserSerializer, CamelotSerializer)
 from cvat.apps.engine.utils import av_scan_paths
 
 from . import models, task
@@ -717,6 +720,29 @@ class UserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(request.user, context={ "request": request })
         return Response(serializer.data)
+
+class CamelotViewSet(viewsets.ViewSet):
+    serializer_class = CamelotSerializer
+
+
+    def get_url(self):
+        return "http://10.10.2.51:9100/extract"
+
+    @action(detail=False, methods=['POST'])
+    def get_table(self, request):
+        headers = { 'Content-Type': 'application/json'}
+        try:
+            clogger.glob.error("Calling URL: {}".format(self.get_url()))
+            clogger.glob.error("Params: {} with type {}".format(request.data, type(request.data)))
+            response = req.post(self.get_url(), data=json.dumps(request.data),headers=headers)
+            clogger.glob.error("Respponse from camelotAPI : {}".format(response.json()))
+            # serializer = CamelotSerializer(data=response.json())
+            # if serializer.is_valid(raise_exception=True):
+            #     return Response(data=serializer.data)
+            return Response(data=response.json())
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 def rq_handler(job, exc_type, exc_value, tb):
     job.exc_info = "".join(
