@@ -31,6 +31,7 @@ from rest_framework.response import Response
 from sendfile import sendfile
 
 import requests as req
+import simplejson
 
 import cvat.apps.dataset_manager as dm
 import cvat.apps.dataset_manager.views # pylint: disable=unused-import
@@ -736,11 +737,15 @@ class CamelotViewSet(viewsets.ViewSet):
             clogger.glob.error("Params: {} with type {}".format(request.data, type(request.data)))
             response = req.post(self.get_url(), data=json.dumps(request.data),headers=headers)
             clogger.glob.error("Respponse from camelotAPI : {}".format(response.json()))
-            # serializer = CamelotSerializer(data=response.json())
-            # if serializer.is_valid(raise_exception=True):
-            #     return Response(data=serializer.data)
-            return Response(data=response.json())
+            with open('/home/django/tests/data.json', 'w') as f:
+                json.dump(response.json(), f, indent=4)
+            serializer = CamelotSerializer(data={"payload": response.json()})
+            if serializer.is_valid(raise_exception=True):
+                 clogger.glob.error("Serialized data: {}".format(serializer.data))
+                 return Response(data=simplejson.loads(simplejson.dumps(response.json(), ignore_nan=True)))
+            return Response(data=simplejson.loads(simplejson.dumps(response.json(), ignore_nan=True)))
         except Exception as e:
+            clogger.glob.error("ERROR: {}".format(str(e)))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
         return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 

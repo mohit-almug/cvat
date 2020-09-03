@@ -631,7 +631,6 @@
                 } catch (errorData) {
                     throw generateError(errorData);
                 }
-
                 return response.data;
             }
 
@@ -639,9 +638,9 @@
                 if (points.length !== 0) {
                     return [
                         points[0] / 2.7,
-                        (points[1]) / 2.6,
+                        (points[1]) / 2.84,
                         points[2] / 2.7,
-                        (points[3]) / 2.6,
+                        (points[3]) / 2.84,
                     ];
                 }
                 return points;
@@ -709,8 +708,14 @@
                         // const { camelotAPI } = config;
                         const camelotAPI = `${backendAPI}/camelot/get_table`;
                         console.log('Camelot API: ', camelotAPI);
-                        const response3 = await getTable(camelotAPI, camelotData);
-                        console.log("Response3: ", response3);
+                        Axios.post(camelotAPI, JSON.stringify(camelotData), {
+                            proxy: config.proxy,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }).then((response3) => console.log(response3));
+                        // const response3 = await getTable(camelotAPI, camelotData);
+                        // console.log('Response3: ', response3);
                     }
                     // response = await callCamelotAPI(data);
                     console.log('TESTING FOR ANNOTATIONS', data);
