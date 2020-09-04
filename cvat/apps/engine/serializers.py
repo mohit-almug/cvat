@@ -13,6 +13,7 @@ from cvat.apps.engine import models
 from cvat.apps.engine.log import slogger
 from cvat.apps.dataset_manager.formats.utils import get_label_color
 
+from .log import clogger
 
 class AttributeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,7 +85,13 @@ class ClientFileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         if instance:
             upload_dir = instance.data.get_upload_dirname()
-            return instance.file.path[len(upload_dir) + 1:]
+            file_name = os.path.basename(instance.file.path)
+            clogger.glob.info("upload_dir: {}, instance_path: {},".format(upload_dir, instance.file.path))
+            if upload_dir not in instance.file.path:
+                shutil.copyfile(instance.file.path, os.path.join(upload_dir, file_name))
+                return file_name
+            else:
+                return instance.file.path[len(upload_dir) + 1:]
         else:
             return instance
 

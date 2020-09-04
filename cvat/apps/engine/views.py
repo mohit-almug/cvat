@@ -371,12 +371,14 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
     def data(self, request, pk):
         if request.method == 'POST':
             db_task = self.get_object() # call check_object_permissions as well
+            clogger.glob.error("Data before sreialization: {}".format(request.data))
             serializer = DataSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             db_data = serializer.save()
             db_task.data = db_data
             db_task.save()
             data = {k:v for k, v in serializer.data.items()}
+            clogger.glob.error("Task DATA json: {}".format(data))
             data['use_zip_chunks'] = serializer.validated_data['use_zip_chunks']
             # if the value of stop_frame is 0, then inside the function we cannot know
             # the value specified by the user or it's default value from the database

@@ -637,10 +637,10 @@
             async function reformatCoordinates(points, frameData) {
                 if (points.length !== 0) {
                     return [
-                        points[0] / 2.7,
-                        (points[1]) / 2.84,
-                        points[2] / 2.7,
-                        (points[3]) / 2.84,
+                        points[0] ,
+                        points[1] ,
+                        points[2] ,
+                        points[3],
                     ];
                 }
                 return points;
@@ -701,6 +701,8 @@
                                 x1: points[2],
                                 y0: points[1],
                                 y1: points[3],
+                                height: frameData.height,
+                                width: frameData.width,
                             };
                             camelotData.selections.push(selection);
                         }
